@@ -1,5 +1,4 @@
 import React, { PureComponent } from 'react'
-import { createContext } from 'react'
 import PropTypes from 'prop-types'
 import { LoaderContext } from './const.js'
 
@@ -29,15 +28,12 @@ export class RMCGlobalLoader extends PureComponent {
     const details = {}
 
     configs.forEach((config) => {
-      // console.log('config', config)
-      // console.log('modeleName', config.modelName)
-      // console.log('ID', this.props[config.modelName + 'Id'])
       const apiHandler = config.apiHandler
       const idList = this.props[config.modelName + 'Id']
       const modelName = config.modelName
 
       if (idList === []) {
-        return null
+        return false
       }
 
       const rGetOrganizationDetail = apiHandler({
@@ -45,8 +41,10 @@ export class RMCGlobalLoader extends PureComponent {
       })
 
       details[modelName] = rGetOrganizationDetail
+
+      return true
     })
-    console.log('details', details)
+
     this.setState((prevState) => {
       return {
         ...prevState,
@@ -60,9 +58,6 @@ export class RMCGlobalLoader extends PureComponent {
     const { children } = this.props
     const { details } = this.state
 
-    // console.log('props', this.props)
-    // console.log('details', details)
-
     return (
       <LoaderContext.Provider value={{
         details,
@@ -75,18 +70,19 @@ export class RMCGlobalLoader extends PureComponent {
 }
 
 RMCGlobalLoader.defaultProps = {
-  apiHandler: () => { },
   children: null,
-  idList: [],
-  modelName: ''
+  modelName: '',
+  configs: []
 }
 
 RMCGlobalLoader.propTypes = {
+  configs: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.node),
+    PropTypes.node
+  ]),
   children: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.node),
     PropTypes.node
   ]),
-  apiHandler: PropTypes.func,
-  idList: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
   modelName: PropTypes.string
 }
