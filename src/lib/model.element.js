@@ -1,9 +1,33 @@
-import { has } from 'lodash';
+import React, { Fragment } from 'react'
+import PropTypes from 'prop-types'
+import { has } from 'lodash'
+import { ModelContext } from './const.js'
 
 export const bindElement = (fieldSelect, contextDetail) => {
-	if (!has(contextDetail, fieldSelect)) {
-		return null;
-	}
+  if (!has(contextDetail, fieldSelect)) {
+    return null
+  }
 
-	return contextDetail[fieldSelect];
-};
+  return contextDetail[fieldSelect]
+}
+
+export class ModelElement extends React.Component {
+  render () {
+    const { field, modelName } = this.props
+    const renderElement = (context) => {
+      // console.log('element', context)
+      return <Fragment>{ bindElement(field, context.detail[modelName]) }</Fragment>
+    }
+
+    return <ModelContext.Consumer>{renderElement}</ModelContext.Consumer>
+  }
+}
+
+ModelElement.defaultProps = {
+  field: ''
+}
+
+ModelElement.propTypes = {
+  field: PropTypes.string,
+  modelName: PropTypes.string
+}

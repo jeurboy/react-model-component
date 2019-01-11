@@ -1,10 +1,8 @@
-import React, { PureComponent, createContext } from 'react'
+import React, { PureComponent } from 'react'
 import PropTypes from 'prop-types'
 import { has } from 'lodash'
 
-export const ModelContext = createContext({
-	detail: {}
-})
+import { LoaderContext, ModelContext } from './const.js'
 
 const initialState = {
   detail: {},
@@ -12,123 +10,134 @@ const initialState = {
 }
 
 export class RMCModel extends PureComponent {
+  static contextType = LoaderContext;
+
   constructor (props) {
     super(props)
 
     this.state = { ...initialState }
   }
-    componentDidMount() {
-        const {oid} = this.props
+  componentDidMount() {
+    const { oid } = this.props
 
-        this.getDetail(oid)
+    if (this.context.loader === true) {
+      return
     }
-  componentDidUpdate (props, state) {
+
+    this.getDetail(oid)
+  }
+
+  componentDidUpdate (prevProps, prevState) {
     const {oid} = this.props
-    const {loaded} = this.state
 
-    console.log('state', state)
-    console.log('this.state', this.state)
-    console.log('props', props)
-    console.log('this.props', this.props)
+    // console.log('context ' + this.props.modelName, this.context)
+    // console.log('state', state)
+    // console.log('this.state', this.state)
+    // console.log('props', prevProps)
+    // console.log('this.props', this.props)
 
-// return;
+    if (this.state.loaded === true) {
+      return
+    }
+
+    if (has(this.context.details, this.props.modelName)) {
+      this.loadDataList(oid, this.context.details[this.props.modelName])
+      return
+    }
+
     // Get detail of selected organization
     if (this.context.loader !== true) {
-        if (props.oid !== oid) {
-            return this.getDetail(oid)
-        }
+      if (prevProps.oid !== oid) {
+        this.getDetail(oid)
+      }
     }
-
-    if (has(this.context, 'Organization')) {
-      return this.loadDataList(oid, this.context.Organization)
-    }
-
-    return true
   }
 
   getDetail = async (organizationId) => {
     const rGetOrganizationDetail = await this.loadData(organizationId, this.props.apiHandler)
 
     if (rGetOrganizationDetail === null) {
-        return false
+      return false
     }
 
     return true
   }
 
-    loadData = async (objectId, callback) => {
-      const rGetDetail = await callback(objectId)
+  loadData = async (objectId, callback) => {
+    const { modelName } = this.props
+    const element = await callback(objectId)
 
-      this.setState((prevState) => {
-        return {
-          ...prevState,
-          loaded: true,
-          detail: rGetDetail
+    this.setState((prevState) => {
+      return {
+        ...prevState,
+        loaded: true,
+        detail: {
+          [modelName]: element
         }
-      })
+      }
+    })
 
-      return rGetDetail
+    return element
+  }
+
+  loadDataList (objectId, detailList = []) {
+    const { modelName } = this.props
+
+    if (detailList.length === 0) {
+      return false
     }
 
-    loadDataList (objectId, detailList = []) {
-    //   this.setState((prevState) => {
-    //     return {
-    //       ...prevState,
-    //       loaded: true
-    //     }
-    //   })
-
-      if (detailList.length === 0) {
-        return false
+    detailList.forEach((element) => {
+      if (objectId === element.Id) {
+        this.setState((prevState) => {
+          return {
+            ...prevState,
+            loaded: true,
+            detail: {
+              [modelName]: element
+            }
+          }
+        })
       }
 
-      detailList.forEach((element) => {
-        //   console.log('objectId', objectId)
-        // console.log('element' , element)
-        if (objectId === element.Id) {
-          this.setState((prevState) => {
-            return {
-              ...prevState,
-              detail: element
-            }
-          })
-        }
-
-        return true
-      })
-
       return true
+    })
+
+    return true
+  }
+
+  renderContext (DetailContextProvider) {
+    const { children } = this.props
+    const { detail } = this.state
+
+    // console.log('model', detail)
+    return (
+      <DetailContextProvider value={{ detail }}>
+        {children}
+      </DetailContextProvider>
+    )
+  }
+
+  render () {
+    const renderElement = (context) => {
+      return this.renderContext(ModelContext.Provider)
     }
 
-    renderContext (DetailContextProvider) {
-      const { children } = this.props
-      const { detail } = this.state
-
-      return (
-        <DetailContextProvider value={{ detail }}>
-          {children}
-        </DetailContextProvider>
-      )
-    }
-
-	// render () {
-	// 	const renderElement = (context) => {
-	// 		return this.renderContext(OrgDetailsContext.Provider);
-    //     };
-
-	// 	return (
-    //   <ModelContext.Consumer>
-    //     {renderElement}
-    //   </ModelContext.Consumer>
-	// 	);
-	// }
+    return (
+      <LoaderContext.Consumer>
+        {renderElement}
+      </LoaderContext.Consumer>
+    )
+  }
 }
 
 RMCModel.defaultProps = {
   apiHandler: () => {},
   oid: '',
   children: null,
-  detail: {}
+  detail: {},
+  modelName: '',
+  loading: false
 }
 
 RMCModel.propTypes = {
@@ -138,5 +147,5 @@ RMCModel.propTypes = {
     PropTypes.arrayOf(PropTypes.node),
     PropTypes.node
   ]),
-  detail: PropTypes.oneOfType([PropTypes.object])
+  modelName: PropTypes.string
 }

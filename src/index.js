@@ -1,11 +1,16 @@
-const { RMCModel, ModelContext } = require('./lib/model.js')
-const { bindElement } = require('./lib/model.element.js')
-const { DetailsContext, RMCModelLoader } = require('./lib/loader.js')
+import { RMCModel } from './lib/model.js'
+import { bindElement, ModelElement } from './lib/model.element.js'
+import { RMCModelLoader } from './lib/loader.js'
+import { RMCGlobalLoader } from './lib/model.loader.js'
 
-module.exports = {
+import { ModelContext, LoaderContext } from './lib/const.js'
+
+export {
   RMCModel,
   RMCModelLoader,
+  RMCGlobalLoader,
   bindElement,
-  DetailsContext,
-  ModelContext
+  LoaderContext,
+  ModelContext,
+  ModelElement
 }

@@ -1,6 +1,6 @@
 # react-model-component
 
-> 
+>
 
 [![NPM](https://img.shields.io/npm/v/react-model-component.svg)](https://www.npmjs.com/package/react-model-component) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
@@ -13,16 +13,42 @@ npm install --save react-model-component
 ## Usage
 
 ```jsx
-import React, { Component, Fragment } from 'react';
-import { RMCModel, bindElement, DetailsContext, RMCModelLoader , ModelContext } from 'react-model-component';
-import PropTypes from 'prop-types';
+import React, { Component } from 'react';
+import { RMCModel, ModelElement, RMCModelLoader, RMCGlobalLoader} from 'react-model-component';
 
-const MyRMCModelLoader = (props) => (
-  <RMCModelLoader modelName="Organization" apiHandler={ApiList} {...props} >{props.children}</RMCModelLoader>
+const GlobalLoader = (props) => (
+  <RMCGlobalLoader
+    configs={[
+      {
+        apiHandler: CompanyLoaderApiList,
+        modelName: "Company"
+      },{
+        apiHandler: OrganizationApiList,
+        modelName: "Organization"
+      }
+    ]}
+  {...props}>{props.children}</RMCGlobalLoader>
 )
-const MyRMCElementLoader = (props) => (
-  <MyModelTest apiHandler={ApiDetail} {...props} >{props.children}</MyModelTest>
+
+/* Organization confuguration */
+
+const OrganizationObject = (props) => (
+  <RMCModel modelName="Organization" apiHandler={OrganizationApiDetail} {...props}>{props.children}</RMCModel>
 )
+const OrganizationField = (props) => (
+  <ModelElement modelName="Organization" {...props}>{props.children}</ModelElement>
+)
+
+
+/* CompanyLoader confuguration */
+
+const CompanyObject = (props) => (
+  <RMCModel modelName="Company" apiHandler={CompanyApiDetail} {...props}>{props.children}</RMCModel>
+)
+const CompanyField = (props) => (
+  <ModelElement modelName="Company" {...props}>{props.children}</ModelElement>
+)
+
 
 const initialState = {
   loading :false,
@@ -47,30 +73,68 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <MyRMCModelLoader idList={[1,2,3,4]} >
-          <MyRMCElementLoader oid="1234">
-            <b><ModelElement field="Name"/></b> <ModelElement field="SurName"/>
-          </MyRMCElementLoader>
+        <div>With .loader</div>
+        <GlobalLoader OrganizationId={[1,2,3,4]} >
+          <OrganizationObject oid="1234">
+            <b><OrganizationField field="Name"/></b> <OrganizationField field="SurName"/>
+          </OrganizationObject>
 
           <br/>
 
-          <MyRMCElementLoader oid="1236">
-            <b><ModelElement field="Name"/></b> <ModelElement field="SurName"/>
-          </MyRMCElementLoader>
+          <OrganizationObject oid="1236">
+            <b><OrganizationField field="Name"/></b> <OrganizationField field="SurName"/>
+          </OrganizationObject>
+        </GlobalLoader>
 
-        </MyRMCModelLoader>
+        <div>Without .loader</div>
+        <OrganizationObject oid="1235">
+          <b><OrganizationField field="Name"/></b> <OrganizationField field="SurName"/>
+        </OrganizationObject>
 
-        <MyRMCElementLoader oid="1235">
-          <b><ModelElement field="Name"/></b> <ModelElement field="SurName"/>
-        </MyRMCElementLoader>
+        <div>Multi .loader</div>
+          <GlobalLoader CompanyId={[1,2,3,4]} OrganizationId={['as', 'df']}>
+            <OrganizationObject oid="1234">
+              Organization 1234 name : <b><OrganizationField field="Name"/></b> <br/>
+              Organization 1234 surname : <OrganizationField field="SurName"/> <br/>
+            </OrganizationObject>
 
+            <CompanyObject oid="asdf">
+              CompanyName : <CompanyField field="Name"/> <br/>
+            </CompanyObject>
+
+            <OrganizationObject oid="1234">
+              Organization 1234 name : <b><OrganizationField field="Name"/></b> <br/>
+              Organization 1234 surname : <OrganizationField field="SurName"/> <br/>
+            </OrganizationObject>
+        </GlobalLoader>
       </div>
     );
   }
 }
 
-const ApiList = (IDs) => {
-  console.log('Call ApiList ', IDs)
+const CompanyLoaderApiList = (IDs) => {
+  console.log('Call CompanyLoaderApiList ', IDs)
+  return [
+    {
+      Id: 'asdf',
+      Name: 'Company: asdf'
+    },
+    {
+      Id: 'ghjk',
+      Name: 'Company: ghjk'
+    },
+  ]
+}
+const CompanyApiDetail = (ID) => {
+  console.log('Call CompanyApiDetail ', ID)
+  return {
+    Id: 'asdf',
+    Name: 'Company: asdf'
+  }
+}
+
+const OrganizationApiList = (IDs) => {
+  console.log('Call OrganizationApiList ', IDs)
   return [
     {
       Id: '1234',
@@ -89,8 +153,8 @@ const ApiList = (IDs) => {
     }
   ]
 }
-const ApiDetail = (ID) => {
-  console.log('Call ApiDetail ', ID)
+const OrganizationApiDetail = (ID) => {
+  console.log('Call OrganizationApiDetail ', ID)
   return {
     Id: ID,
     Name: 'Name detail '+ID,
@@ -98,43 +162,8 @@ const ApiDetail = (ID) => {
   }
 }
 
-
-class MyModelTest extends RMCModel {
-  static contextType = DetailsContext;
-
-	render () {
-		const renderElement = (context) => {
-			return super.renderContext(OrgDetailsContext.Provider);
-    };
-
-		return (
-      <DetailsContext.Consumer>
-        {renderElement}
-      </DetailsContext.Consumer>
-		);
-	}
-}
-
-const OrgDetailsContext = ModelContext
-
-const ModelElement = (props) => {
-	const renderElement = (context) => {
-		return <Fragment>{ bindElement(props.field, context.detail) }</Fragment>;
-	};
-
-	return <OrgDetailsContext.Consumer>{renderElement}</OrgDetailsContext.Consumer>;
-};
-
-ModelElement.defaultProps = {
-	field: ''
-};
-
-ModelElement.propTypes = {
-	field: PropTypes.string
-};
-
-
 export default App;
+
 
 ```
 

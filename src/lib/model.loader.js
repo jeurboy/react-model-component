@@ -9,7 +9,7 @@ const initialState = {
   loading: false
 }
 
-export class RMCModelLoader extends PureComponent {
+export class RMCGlobalLoader extends PureComponent {
   constructor (props) {
     super(props)
 
@@ -17,38 +17,43 @@ export class RMCModelLoader extends PureComponent {
   }
 
   componentDidUpdate (prevProps, prevState) {
-    const { idList } = this.props
-
-    if (this.state.loading === false) {
-    // Get detail of selected organization
-      this.getListDetail(idList)
+    if (this.state.loading !== true) {
+      this.getListDetail(this.props.configs)
     }
   }
 
   componentDidMount () {
   }
 
-  getListDetail = async (idList) => {
-    const { modelName } = this.props
-    if (idList === []) {
-      return null
-    }
+  getListDetail = async (configs) => {
+    const details = {}
 
-    const rGetOrganizationDetail = await this.props.apiHandler({
-      Id: idList.join()
+    configs.forEach((config) => {
+      // console.log('config', config)
+      // console.log('modeleName', config.modelName)
+      // console.log('ID', this.props[config.modelName + 'Id'])
+      const apiHandler = config.apiHandler
+      const idList = this.props[config.modelName + 'Id']
+      const modelName = config.modelName
+
+      if (idList === []) {
+        return null
+      }
+
+      const rGetOrganizationDetail = apiHandler({
+        Id: idList.join()
+      })
+
+      details[modelName] = rGetOrganizationDetail
     })
-
+    console.log('details', details)
     this.setState((prevState) => {
       return {
         ...prevState,
         loading: true,
-        details: {
-          [modelName]: rGetOrganizationDetail
-        }
+        details
       }
     })
-
-    return rGetOrganizationDetail
   }
 
   render () {
@@ -69,14 +74,14 @@ export class RMCModelLoader extends PureComponent {
   }
 }
 
-RMCModelLoader.defaultProps = {
+RMCGlobalLoader.defaultProps = {
   apiHandler: () => { },
   children: null,
   idList: [],
   modelName: ''
 }
 
-RMCModelLoader.propTypes = {
+RMCGlobalLoader.propTypes = {
   children: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.node),
     PropTypes.node
