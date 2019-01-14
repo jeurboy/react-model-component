@@ -1,12 +1,12 @@
 import { RMCModel } from './lib/model.js'
-import { ModelElement } from './lib/model.element.js'
+import { RMCModelElement } from './lib/model.element.js'
 import { RMCGlobalLoader } from './lib/model.loader.js'
 
 // import { ModelContext, LoaderContext } from './lib/const.js'
-// npm publish
+// yarn deploy
 
 export {
   RMCModel,
   RMCGlobalLoader,
-  ModelElement
+  RMCModelElement
 }

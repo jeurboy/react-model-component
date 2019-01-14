@@ -31,7 +31,7 @@ export class RMCModel extends PureComponent {
     const {oid} = this.props
 
     // console.log('context ' + this.props.modelName, this.context)
-    // console.log('state', state)
+    // console.log('state', prevState)
     // console.log('this.state', this.state)
     // console.log('props', prevProps)
     // console.log('this.props', this.props)
@@ -82,13 +82,14 @@ export class RMCModel extends PureComponent {
 
   loadDataList (objectId, detailList = []) {
     const { modelName } = this.props
+    const Primarykey = (this.props.Primarykey !== '') ? this.props.Primarykey : 'id'
 
     if (detailList.length === 0) {
       return false
     }
 
     detailList.forEach((element) => {
-      if (objectId === element.Id) {
+      if (objectId === element[Primarykey]) {
         this.setState((prevState) => {
           return {
             ...prevState,
@@ -137,7 +138,8 @@ RMCModel.defaultProps = {
   children: null,
   detail: {},
   modelName: '',
-  loading: false
+  loading: false,
+  Primarykey: ''
 }
 
 RMCModel.propTypes = {
@@ -147,5 +149,6 @@ RMCModel.propTypes = {
     PropTypes.arrayOf(PropTypes.node),
     PropTypes.node
   ]),
-  modelName: PropTypes.string
+  modelName: PropTypes.string,
+  Primarykey: PropTypes.string
 }

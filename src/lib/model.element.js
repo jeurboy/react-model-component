@@ -11,7 +11,7 @@ export const bindElement = (fieldSelect, contextDetail) => {
   return contextDetail[fieldSelect]
 }
 
-export class ModelElement extends React.Component {
+export class RMCModelElement extends React.Component {
   render () {
     const { field, modelName } = this.props
     const renderElement = (context) => {
@@ -23,11 +23,11 @@ export class ModelElement extends React.Component {
   }
 }
 
-ModelElement.defaultProps = {
+RMCModelElement.defaultProps = {
   field: ''
 }
 
-ModelElement.propTypes = {
+RMCModelElement.propTypes = {
   field: PropTypes.string,
   modelName: PropTypes.string
 }

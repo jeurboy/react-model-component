@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react'
 import PropTypes from 'prop-types'
 import { LoaderContext } from './const.js'
+import { has } from 'lodash'
 
 const initialState = {
   details: [],
@@ -32,13 +33,11 @@ export class RMCGlobalLoader extends PureComponent {
       const idList = this.props[config.modelName + 'Id']
       const modelName = config.modelName
 
-      if (idList === []) {
+      if (!has(this.props, config.modelName + 'Id') || idList === []) {
         return false
       }
 
-      const rGetOrganizationDetail = apiHandler({
-        Id: idList.join()
-      })
+      const rGetOrganizationDetail = apiHandler(idList.join())
 
       details[modelName] = rGetOrganizationDetail
 
@@ -61,7 +60,7 @@ export class RMCGlobalLoader extends PureComponent {
     return (
       <LoaderContext.Provider value={{
         details,
-        loader: { [this.props.modelName]: true }
+        loader: true
       }}>
         {children}
       </LoaderContext.Provider>
@@ -71,18 +70,13 @@ export class RMCGlobalLoader extends PureComponent {
 
 RMCGlobalLoader.defaultProps = {
   children: null,
-  modelName: '',
-  configs: []
+  configs: [{}]
 }
 
 RMCGlobalLoader.propTypes = {
-  configs: PropTypes.oneOfType([
-    PropTypes.arrayOf(PropTypes.node),
-    PropTypes.node
-  ]),
+  configs: PropTypes.arrayOf(PropTypes.object),
   children: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.node),
     PropTypes.node
-  ]),
-  modelName: PropTypes.string
+  ])
 }
